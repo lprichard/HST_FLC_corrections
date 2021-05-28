@@ -44,6 +44,7 @@ def copy_files_check(src_dir, dst_dir, files='*', rename=False, src_str='', dst_
     if rename==True: 
         print('Renaming {} to {} in files'.format(src_str, dst_str))
         rnm_str, rnmd_str=' and renaming ', ' and renamed '
+    else: rnm_str=rnmd_str=''
     print('=====================================================================')
     
     # Check for destination directory and make if it doesn't exist
@@ -59,36 +60,38 @@ def copy_files_check(src_dir, dst_dir, files='*', rename=False, src_str='', dst_
     # Loop over each file, create a source and destination, check if it exists, and copy if not 
     n=0
     for file in files:
-        # Define source and destination paths for each file
-        src = os.path.join(src_dir, file)   #Source filepath of file to be copied
+        if os.path.isfile(file):
+            # Define source and destination paths for each file
+            src = os.path.join(src_dir, file)   #Source filepath of file to be copied
 
-        # If a file is to be renamed with a replacement extension
-        if rename==False:
-            dst = os.path.join(dst_dir, file)   #Destination filepath of to be copied and renamed
-        else: 
-            # Replace the specified component with the new component
-            dst = os.path.join(dst_dir, file.replace(src_str, dst_str))
+            # If a file is to be renamed with a replacement extension
+            if rename==False:
+                dst = os.path.join(dst_dir, file)   #Destination filepath of to be copied and renamed
+            else: 
+                # Replace the specified component with the new component
+                dst = os.path.join(dst_dir, file.replace(src_str, dst_str))
 
-        # Check if the file is already in the destination directory, if not it is copied
-        if not os.path.exists(dst):
-            # Either copy/move the files or add to the cmd variable
-            if print_cmd==False:
-                if move==False:
-                    print('Copying {}{} to {}'.format(rnm_str, src, dst))
-                    shutil.copy(src, dst)
+            # Check if the file is already in the destination directory, if not it is copied
+            if not os.path.exists(dst):
+                # Either copy/move the files or add to the cmd variable
+                if print_cmd==False:
+                    if move==False:
+                        print('Copying{} {} to {}'.format(rnm_str, src, dst))
+                        shutil.copy(src, dst)
+                    else:
+                        print('~Moving~{} {} to {}'.format(rnm_str, src, dst))
+                        shutil.move(src, dst)
                 else:
-                    print('~Moving~ {}{} to {}'.format(rnm_str, src, dst))
-                    shutil.move(src, dst)
+                    if n>0: cmd+= ' && '
+                    # Set command to copy/move the file to print for command line
+                    cmd+= '{} {} {}'.format(md, src, dst)
+                n+=1
             else:
-                if n>0: cmd+= ' && '
-                # Set command to copy/move the file to print for command line
-                cmd+= '{} {} {}'.format(md, src, dst)
-            n+=1
-        else:
-            if move==False:
-                print('File exists: {}, not copying from {}'.format(dst, src_dir))
-            else:
-                print('File exists: {}, not ~moving~ from {}'.format(dst, src_dir))
+                if move==False:
+                    print('File exists: {}, not copying from {}'.format(dst, src_dir))
+                else:
+                    print('File exists: {}, not ~moving~ from {}'.format(dst, src_dir))
+        else: print('WARNING: {} is not a file, skipping...'.format(file))
 
     # Print the command to copy the files or a summary of the copied files
     if print_cmd==True:
@@ -105,9 +108,9 @@ def copy_files_check(src_dir, dst_dir, files='*', rename=False, src_str='', dst_
         return cmd
     else:
         if move==False:
-            print('Copied {}{} files to {}'.format(rnmd_str, n, dst_dir))
+            print('Copied{} {} files to {}'.format(rnmd_str, n, dst_dir))
         else: 
-            print('~Moved~ {}{} files to {}'.format(rnmd_str, n, dst_dir))
+            print('~Moved~{} {} files to {}'.format(rnmd_str, n, dst_dir))
         
         
 def rename(direc, files='*', src_str='', dst_str=''):
